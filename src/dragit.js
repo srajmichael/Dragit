@@ -250,9 +250,9 @@ function handleCurrentlyDraggingElementWithMouse(e){
 }
 
 function handleCurrentlyDraggingElementWithTouch(e){
-    e.preventDefault();
+    // e.preventDefault();
     let element = getElementBeingDragged();
-    let touchDistance = getEventDistanceFromDraggingTopLeftTouch();
+    let touchDistance = getEventDistanceFromDraggingTopLeft();
     let left = e.touches[0].clientX - touchDistance.x;
     let top = e.touches[0].clientY - touchDistance.y;
     element.style.top = top + 'px';
@@ -281,10 +281,10 @@ function handleCurrentlyDraggingElementWithTouch(e){
   */
 
 
-window.addEventListener('mousemove', handleOnDraggingForMouse);
-window.addEventListener('touchmove', handleOnDraggingForTouch);
-window.addEventListener('touchend', handleOnDraggableDragEndForTouch);
-window.addEventListener('mouseup',handleOnDraggableDragEndForMouse);
+document.body.addEventListener('mousemove', handleOnDraggingForMouse, false);
+document.body.addEventListener('touchmove', handleOnDraggingForTouch, false);
+document.body.addEventListener('touchend', handleOnDraggableDragEndForTouch, false);
+document.body.addEventListener('mouseup',handleOnDraggableDragEndForMouse, false);
 
 
 
