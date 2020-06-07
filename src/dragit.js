@@ -26,3 +26,20 @@ function replacePlaceholderWithDraggable(draggableElement){
 /**
  * ./DRAGGABLE PLACEHOLDER 
  */
+
+
+ /**
+ * CURRENTLY DRAGGING 
+ */
+let currentlyDragging = null;
+
+function setCurrentlyDragging(element){
+    currentlyDragging = element;
+}
+
+function getCurrentlyDragging(){
+    return currentlyDragging;
+}
+/**
+ * ./CURRENTLY DRAGGING 
+ */
