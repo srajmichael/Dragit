@@ -48,21 +48,21 @@ function getCurrentlyDragging(){
  /**
  * MOUSE DISTANCE FROM ELEMENT TOP LEFT
  */
-let mouseDistanceFromDraggingTopLeft = {x: 0, y: 0};
+let eventDistanceFromDraggingTopLeft = {x: 0, y: 0};
 
-function setMouseDistanceFromDraggingTopLeft(element, event){
-    mouseDistanceFromDraggingTopLeft = eventDistanceFromTopLeftOfElement(element, event);
+function setEventDistanceFromDraggingTopLeftForMouse(element, event){
+    eventDistanceFromDraggingTopLeft = eventDistanceFromTopLeftOfElementForMouse(element, event);
 }
 
-function getMouseDistanceFromDraggingTopLeft(){
-    return mouseDistanceFromDraggingTopLeft;
+function getEventDistanceFromDraggingTopLeft(){
+    return eventDistanceFromDraggingTopLeft;
 }
 
-function setMouseDistanceFromDraggingTopLeftTouch(element, event){
-    mouseDistanceFromDraggingTopLeft = eventDistanceFromTopLeftOfElementTouch(element, event);
+function setEventDistanceFromDraggingTopLeftForTouch(element, event){
+    eventDistanceFromDraggingTopLeft = eventDistanceFromTopLeftOfElementForTouch(element, event);
 }
 
-function eventDistanceFromTopLeftOfElement(element, event){
+function eventDistanceFromTopLeftOfElementForMouse(element, event){
     let eventX = event.clientX;
     let eventY = event.clientY;
     let rect = element.getBoundingClientRect();
@@ -77,7 +77,7 @@ function eventDistanceFromTopLeftOfElement(element, event){
     }
     
 }
-function eventDistanceFromTopLeftOfElementTouch(element, event){
+function eventDistanceFromTopLeftOfElementForTouch(element, event){
     let eventX = event.touches[0].clientX;
     let eventY = event.touches[0].clientY;
     let rect = element.getBoundingClientRect();
@@ -148,36 +148,16 @@ function appendElementToBody(element){
 /**
  * DRAGGABLE EVENTS
  */
-
-const useMouseEvents = true;
-let mouseIsDown = false;
-
-function handleOnDraggableDragStart(event){
-    let draggable = this;
+function dragStartInitializer(draggable, event){
     draggable.classList.add(DRAGGING_CLASS);
     setCurrentlyDragging(draggable);
-    setMouseDistanceFromDraggingTopLeft(draggable, event)
     setElementLocationandFixedState(draggable);
     insertPlaceholderBeforeDraggable(draggable);
     appendElementToBody(draggable);
     addDraggableDragEvent(draggable);
 }
 
-function handleOnDraggableDragStartTouch(event){
-    event.preventDefault();
-    let draggable = this;
-    draggable.classList.add(DRAGGING_CLASS);
-    setCurrentlyDragging(draggable);
-    setMouseDistanceFromDraggingTopLeftTouch(draggable, event)
-    setElementLocationandFixedState(draggable);
-    insertPlaceholderBeforeDraggable(draggable);
-    appendElementToBody(draggable);
-    addDraggableDragEvent(draggable);
-}
-
-
-function handleOnDraggableDragEnd(event){
-    let draggable = this;
+function dragEndInitializer(draggable, event){
     draggable.classList.remove(DRAGGING_CLASS);
     setCurrentlyDragging(null);
     unsetElementLocationandFixedState(draggable);
@@ -185,81 +165,73 @@ function handleOnDraggableDragEnd(event){
     replacePlaceholderWithDraggable(draggable);
 }
 
-function handleOnDraggableDragEndTouch(event){
+function handleOnDraggableDragStartForMouse(event){
+    let draggable = this;
+    setEventDistanceFromDraggingTopLeftForMouse(draggable, event);
+    dragStartInitializer(draggable, event);
+}   
+
+function handleOnDraggableDragStartForTouch(event){
     event.preventDefault();
     let draggable = this;
-    draggable.classList.remove(DRAGGING_CLASS);
-    setCurrentlyDragging(null);
-    unsetElementLocationandFixedState(draggable);
-    removeDraggableDragEvent(draggable);
-    replacePlaceholderWithDraggable(draggable);
-}
+    setEventDistanceFromDraggingTopLeftForTouch(draggable, event);
+    dragStartInitializer(draggable, event);
+}  
 
-function addDraggableDragEvent(element){
-    if(useMouseEvents){
-        element.addEventListener('mousemove', dragCurrentlyDraggingElement);
-        element.addEventListener('touchmove', dragCurrentlyDraggingElementTouch);
-        
-    }else{
-        element.addEventListener('drag', dragCurrentlyDraggingElement);
-    }
-    
-}
-
-function removeDraggableDragEvent(element){
-    if(useMouseEvents){
-        element.removeEventListener('mousemove', dragCurrentlyDraggingElement);
-        element.removeEventListener('touchmove', dragCurrentlyDraggingElementTouch);
-    }else{
-        element.removeEventListener('drag', dragCurrentlyDraggingElement);
-    }
-    
-}
-
-function dragCurrentlyDraggingElement(e){
+function handleCurrentlyDraggingElementWithMouse(e){
     let element = this;
-    let mouseDistance = getMouseDistanceFromDraggingTopLeft();
+    let mouseDistance = getEventDistanceFromDraggingTopLeft();
     let left = e.clientX - mouseDistance.x;
     let top = e.clientY - mouseDistance.y;
     element.style.top = top + 'px';
     element.style.left = left + 'px';
 }
-function dragCurrentlyDraggingElementTouch(e){
+
+function handleCurrentlyDraggingElementWithTouch(e){
     e.preventDefault();
     let element = this;
-    let mouseDistance = getMouseDistanceFromDraggingTopLeft();
-    let left = e.touches[0].clientX - mouseDistance.x;
-    let top = e.touches[0].clientY - mouseDistance.y;
+    let touchDistance = getEventDistanceFromDraggingTopLeftTouch();
+    let left = e.touches[0].clientX - touchDistance.x;
+    let top = e.touches[0].clientY - touchDistance.y;
     element.style.top = top + 'px';
     element.style.left = left + 'px';
 }
 
+function handleOnDraggableDragEndForMouse(event){
+    let draggable = this;
+    dragEndInitializer(draggable, event);
+}
+
+function handleOnDraggableDragEndForTouch(event){
+    event.preventDefault();
+    let draggable = this;
+    dragEndInitializer(draggable, event);
+}
+
+function addDraggableDragEvent(element){
+    element.addEventListener('mousemove', handleCurrentlyDraggingElementWithMouse);
+    element.addEventListener('touchmove', handleCurrentlyDraggingElementWithTouch);
+}
+
+function removeDraggableDragEvent(element){
+    element.removeEventListener('mousemove', handleCurrentlyDraggingElementWithMouse);
+    element.removeEventListener('touchmove', handleCurrentlyDraggingElementWithTouch); 
+}
+
 function addDraggableDragStartEventListener(draggableElement){
-    if(useMouseEvents){
-        draggableElement.addEventListener('mousedown',handleOnDraggableDragStart);
-        draggableElement.addEventListener('touchstart',handleOnDraggableDragStartTouch);
-    }else{
-        draggableElement.addEventListener('dragstart',handleOnDraggableDragStart);
-    }
+    draggableElement.addEventListener('mousedown',handleOnDraggableDragStartForMouse);
+    draggableElement.addEventListener('touchstart',handleOnDraggableDragStartForTouch);
 }
 
 function addDraggableDragEndEventListener(draggableElement){
-    if(useMouseEvents){
-        draggableElement.addEventListener('mouseup',handleOnDraggableDragEnd);
-        draggableElement.addEventListener('touchend',handleOnDraggableDragEndTouch);
-    }else{
-        draggableElement.addEventListener('dragend',handleOnDraggableDragEnd);
-    }
+    draggableElement.addEventListener('mouseup',handleOnDraggableDragEndForMouse);
+    draggableElement.addEventListener('touchend',handleOnDraggableDragEndForTouch);
 }
 /**
  * ./DRAGGABLE EVENTS
  */
 
 function makeElementDraggable(element){
-    if(!useMouseEvents){
-        element.draggable = 'true';
-    }
-    
     addDraggableDragStartEventListener(element);
     addDraggableDragEndEventListener(element);
 }
