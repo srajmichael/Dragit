@@ -123,11 +123,11 @@ function eventDistanceFromTopLeftOfElementForTouch(element, event){
  * MISC HELPER FUNCTIONS
  */
 
-function getSinglePointXYFromEvent(event, index = null){
+function getSinglePointXYFromEvent(event, touchIndex = null){
     let type = event.type;
-    if(type === 'touch'){
-        if(index === null){
-            index = 0;
+    if(type.includes('touch')){
+        if(touchIndex === null){
+            touchIndex = 0;
         }
         return {x: event.touches[touchIndex].clientX, y: event.touches[touchIndex].clientY}
     }
@@ -212,7 +212,7 @@ function handleOnDraggableDragStartForMouse(event){
 }   
 
 function handleOnDraggableDragStartForTouch(event){
-    event.preventDefault();
+    // event.preventDefault();
     let draggingElement = this;
     setElementBeingDragged(draggingElement);
     setEventDistanceFromDraggingTopLeftForTouch(draggingElement, event);
@@ -229,14 +229,55 @@ function addDraggableDragStartEventListener(draggableElement){
 function addDraggingEventToDraggedElement(){
     let dragging = getElementBeingDragged();
     dragging.addEventListener('mousemove', handleBeingDraggedEvent);
+    dragging.addEventListener('touchmove', handleBeingDraggedEvent);
 }
+
 function removeDraggingEventToDraggedElement(){
     let dragging = getElementBeingDragged();
     dragging.removeEventListener('mousemove', handleBeingDraggedEvent);
+    dragging.removeEventListener('touchmove', handleBeingDraggedEvent);
 }
+
 function handleBeingDraggedEvent(event){
     let housing = getHoveredOverHousing(event);
-    console.log(housing)
+    if(housing){
+        manageDraggablePlaceholderPlacementInHousing(housing);
+    }
+}
+
+
+function manageDraggablePlaceholderPlacementInHousing(housing){
+    let children = housing.children;
+    let point = getCenterPointOfDraggedElement();
+    let placeholder = getDraggingPlaceholderElement(); 
+    if(children.length == 0){
+        housing.appendChild(placeholder);
+    }
+
+    for(let i = 0; i < children.length; i++){
+        if(pointIsInsideElement(point, children[i])){
+            let rect = children[i].getBoundingClientRect();
+            let center = getCenterPointOfElement(children[i]);
+            if(center.y > point.y){
+                if(i !== 0){
+                    if(children[i-1] !== placeholder){
+                        insertPlaceholderBefore(children[i]);
+                    }
+                }else{
+                    insertPlaceholderBefore(children[i]);
+                }
+            }else{
+                if(i !== children.length - 1){
+                    if(children[i+1] !== placeholder){
+                        insertPlaceholderAfter(children[i]);
+                    }
+                }else{
+                    insertPlaceholderAfter(children[i]);
+                }
+                
+            }
+        }
+    }
 }
 
 
@@ -257,7 +298,7 @@ function handleOnDraggableDragEndForMouse(event){
 }
 
 function handleOnDraggableDragEndForTouch(event){
-    event.preventDefault();
+    // event.preventDefault();
     if(currentlyDraggingElement){
         dragEndInitializer();
     }
@@ -390,41 +431,41 @@ function getCenterPointOfElement(element){
 
 
 
-document.getElementById('house').addEventListener('mousemove', function(e){
-    if(currentlyDraggingElement){
-        let house = this;
-        let children = house.children;
-        let point = getCenterPointOfDraggedElement();
-        let placeholder = getDraggingPlaceholderElement(); 
+// document.getElementById('house').addEventListener('mousemove', function(e){
+//     if(currentlyDraggingElement){
+//         let house = this;
+//         let children = house.children;
+//         let point = getCenterPointOfDraggedElement();
+//         let placeholder = getDraggingPlaceholderElement(); 
     
-        for(let i = 0; i < children.length; i++){
-            if(pointIsInsideElement(point, children[i])){
-                let rect = children[i].getBoundingClientRect();
-                let center = getCenterPointOfElement(children[i]);
-                if(center.y > point.y){
-                    if(i !== 0){
-                        if(children[i-1] !== placeholder){
-                            insertPlaceholderBefore(children[i]);
-                        }
-                    }else{
-                        insertPlaceholderBefore(children[i]);
-                    }
-                }else{
-                    if(i !== children.length - 1){
-                        if(children[i+1] !== placeholder){
-                            insertPlaceholderAfter(children[i]);
-                        }
-                    }else{
-                        insertPlaceholderAfter(children[i]);
-                    }
+//         for(let i = 0; i < children.length; i++){
+//             if(pointIsInsideElement(point, children[i])){
+//                 let rect = children[i].getBoundingClientRect();
+//                 let center = getCenterPointOfElement(children[i]);
+//                 if(center.y > point.y){
+//                     if(i !== 0){
+//                         if(children[i-1] !== placeholder){
+//                             insertPlaceholderBefore(children[i]);
+//                         }
+//                     }else{
+//                         insertPlaceholderBefore(children[i]);
+//                     }
+//                 }else{
+//                     if(i !== children.length - 1){
+//                         if(children[i+1] !== placeholder){
+//                             insertPlaceholderAfter(children[i]);
+//                         }
+//                     }else{
+//                         insertPlaceholderAfter(children[i]);
+//                     }
                     
-                }
-            }
-        }
-    }
+//                 }
+//             }
+//         }
+//     }
 
 
-})
+// })
 
 
 
