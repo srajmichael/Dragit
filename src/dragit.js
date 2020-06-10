@@ -6,6 +6,15 @@ const DRAGGING_CLASS = 'dragging';
 let elementBeingDragged = null
 let currentlyDraggingElement = false;
 
+let draggableHousings = getStartingDraggableHousings();
+
+function getStartingDraggableHousings(){
+    let housings = document.querySelectorAll('.draggable-housing');
+    return Array.prototype.slice.call(housings);
+}
+
+
+
  /**
   * @TODO change dragging listeners to window
   * @TOD make functions rely on getElementBeingDragged()
@@ -49,9 +58,7 @@ function getElementBeingDragged(){
     return elementBeingDragged;
 }
 
-function setCurrentlyDraggingElement(boolean){
-    currentlyDraggingElement = boolean;
-}
+
 
 
 /**
@@ -115,6 +122,19 @@ function eventDistanceFromTopLeftOfElementForTouch(element, event){
 /**
  * MISC HELPER FUNCTIONS
  */
+
+function getSinglePointXYFromEvent(event, index = null){
+    let type = event.type;
+    if(type === 'touch'){
+        if(index === null){
+            index = 0;
+        }
+        return {x: event.touches[touchIndex].clientX, y: event.touches[touchIndex].clientY}
+    }
+    return {x: event.clientX, y: event.clientY}
+}
+
+
 function setElementPositionAndSizeFromBoundingClientRect(element){
     let rect = element.getBoundingClientRect();
     element.style.height = rect.height + 'px';
@@ -177,6 +197,7 @@ function pointIsInsideElement(point, element){
  function dragStartInitializer(draggingElement, event){
     draggingElement.classList.add(DRAGGING_CLASS);
     setElementBeingDragged(draggingElement);
+    addDraggingEventToDraggedElement();
     setElementLocationandFixedState(draggingElement);
     insertPlaceholderBeforeDraggable(draggingElement);
     appendElementToBody(draggingElement);
@@ -205,10 +226,25 @@ function addDraggableDragStartEventListener(draggableElement){
     draggableElement.addEventListener('touchstart',handleOnDraggableDragStartForTouch);
 }
 
+function addDraggingEventToDraggedElement(){
+    let dragging = getElementBeingDragged();
+    dragging.addEventListener('mousemove', handleBeingDraggedEvent);
+}
+function removeDraggingEventToDraggedElement(){
+    let dragging = getElementBeingDragged();
+    dragging.removeEventListener('mousemove', handleBeingDraggedEvent);
+}
+function handleBeingDraggedEvent(event){
+    let housing = getHoveredOverHousing(event);
+    console.log(housing)
+}
+
+
 //end
 function dragEndInitializer(){
     let dragging = getElementBeingDragged();
     dragging.classList.remove(DRAGGING_CLASS);
+    removeDraggingEventToDraggedElement()
     setElementBeingDragged(null);
     unsetElementLocationandFixedState(dragging);
     replacePlaceholderWithDraggable(dragging);
@@ -303,3 +339,94 @@ let draggables = document.querySelectorAll('.draggable');
 for(let i = 0; i < draggables.length; i++){
     makeElementDraggable(draggables[i]);
 }
+
+
+
+
+function getHoveredOverHousing(event){
+    const point = getSinglePointXYFromEvent(event, 0);
+    let housings = draggableHousings;
+    for(let i = 0; i < housings.length; i++){
+        if(pointIsInsideElement(point, housings[i])){
+            return housings[i];
+        }
+    }
+    return null;
+}
+
+
+
+
+function insertPlaceholderBefore(element){
+    let placeholder = getDraggingPlaceholderElement();
+    element.parentNode.insertBefore(placeholder, element);
+}
+
+
+function insertPlaceholderAfter(element){
+   let index = getElementIndex(element);
+   let children = element.parentNode.children;
+   let placeholder = getDraggingPlaceholderElement();
+
+   if(children.length - 1 == index){
+    element.parentNode.appendChild(placeholder);
+   }else{
+    element.parentNode.insertBefore(placeholder, children[index + 1]);
+   }
+}
+
+function getCenterPointOfDraggedElement(){
+    let dragging = getElementBeingDragged();
+    return getCenterPointOfElement(dragging);
+}
+
+function getCenterPointOfElement(element){
+    let rect = element.getBoundingClientRect();
+    let centerX = (rect.width / 2) + rect.left;
+    let centerY = (rect.height / 2) + rect.top;
+    return {x: centerX, y: centerY};
+}
+
+
+
+
+document.getElementById('house').addEventListener('mousemove', function(e){
+    if(currentlyDraggingElement){
+        let house = this;
+        let children = house.children;
+        let point = getCenterPointOfDraggedElement();
+        let placeholder = getDraggingPlaceholderElement(); 
+    
+        for(let i = 0; i < children.length; i++){
+            if(pointIsInsideElement(point, children[i])){
+                let rect = children[i].getBoundingClientRect();
+                let center = getCenterPointOfElement(children[i]);
+                if(center.y > point.y){
+                    if(i !== 0){
+                        if(children[i-1] !== placeholder){
+                            insertPlaceholderBefore(children[i]);
+                        }
+                    }else{
+                        insertPlaceholderBefore(children[i]);
+                    }
+                }else{
+                    if(i !== children.length - 1){
+                        if(children[i+1] !== placeholder){
+                            insertPlaceholderAfter(children[i]);
+                        }
+                    }else{
+                        insertPlaceholderAfter(children[i]);
+                    }
+                    
+                }
+            }
+        }
+    }
+
+
+})
+
+
+
+
+
