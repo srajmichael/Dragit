@@ -65,54 +65,42 @@ function getElementBeingDragged(){
  * ./CURRENTLY DRAGGING 
  */
 
+ function isTouchEvent(event){
+    return event.type.includes('touch');
+ }
+
+ function isMouseEvent(event){
+    return event.type.includes('mouse');
+ }
 
  /**
  * MOUSE DISTANCE FROM ELEMENT TOP LEFT
  */
 let eventDistanceFromDraggingTopLeft = {x: 0, y: 0};
 
-function setEventDistanceFromDraggingTopLeftForMouse(element, event){
-    eventDistanceFromDraggingTopLeft = eventDistanceFromTopLeftOfElementForMouse(element, event);
+function setEventDistanceFromDraggingTopLeft(element, event){
+    eventDistanceFromDraggingTopLeft = eventDistanceFromTopLeftOfElement(element, event);
 }
 
 function getEventDistanceFromDraggingTopLeft(){
     return eventDistanceFromDraggingTopLeft;
 }
 
-function setEventDistanceFromDraggingTopLeftForTouch(element, event){
-    eventDistanceFromDraggingTopLeft = eventDistanceFromTopLeftOfElementForTouch(element, event);
-}
-
-function eventDistanceFromTopLeftOfElementForMouse(element, event){
-    let eventX = event.clientX;
-    let eventY = event.clientY;
+function eventDistanceFromTopLeftOfElement(element, event, index=0){
+    let eventX = isMouseEvent(event) ? event.clientX : isTouchEvent(event) ? event.touches[index].clientX : -1;
+    let eventY = isMouseEvent(event) ? event.clientY : isTouchEvent(event) ? event.touches[index].clientY : -1;
     let rect = element.getBoundingClientRect();
     let elementTop = rect.top;
     let elementLeft = rect.left;
-
     let newY = eventY - elementTop;
     let newX = eventX - elementLeft;
     return {
         x: newX,
         y: newY
     }
-    
 }
-function eventDistanceFromTopLeftOfElementForTouch(element, event){
-    let eventX = event.touches[0].clientX;
-    let eventY = event.touches[0].clientY;
-    let rect = element.getBoundingClientRect();
-    let elementTop = rect.top;
-    let elementLeft = rect.left;
 
-    let newY = eventY - elementTop;
-    let newX = eventX - elementLeft;
-    return {
-        x: newX,
-        y: newY
-    }
-    
-}
+
 /**
  * ./MOUSE DISTANCE FROM ELEMENT TOP LEFT
  */
@@ -122,6 +110,11 @@ function eventDistanceFromTopLeftOfElementForTouch(element, event){
 /**
  * MISC HELPER FUNCTIONS
  */
+
+function elementIsInteractiveHtmlElement(element){
+    const interactiveElements = ['button', 'a', 'input', 'select'];
+    return interactiveElements.includes(element.tagName.toLowerCase());
+}
 
 function getSinglePointXYFromEvent(event, touchIndex = null){
     let type = event.type;
@@ -203,27 +196,19 @@ function pointIsInsideElement(point, element){
     appendElementToBody(draggingElement);
 }
 
-function handleOnDraggableDragStartForMouse(event){
-    let draggingElement = this;
-    setElementBeingDragged(draggingElement);
-    setEventDistanceFromDraggingTopLeftForMouse(draggingElement, event);
-    dragStartInitializer(draggingElement, event);
-    currentlyDraggingElement = true;
-}   
-
-function handleOnDraggableDragStartForTouch(event){
-    // event.preventDefault();
-    let draggingElement = this;
-    setElementBeingDragged(draggingElement);
-    setEventDistanceFromDraggingTopLeftForTouch(draggingElement, event);
-    dragStartInitializer(draggingElement, event);
-    currentlyDraggingElement = true;
-}  
-
+function handleOnDraggableDragStart(event){
+    if(!elementIsInteractiveHtmlElement(event.target)){
+        let draggingElement = this;
+        setElementBeingDragged(draggingElement);
+        setEventDistanceFromDraggingTopLeft(draggingElement, event);
+        dragStartInitializer(draggingElement, event);
+        currentlyDraggingElement = true;
+    }
+}
 
 function addDraggableDragStartEventListener(draggableElement){
-    draggableElement.addEventListener('mousedown',handleOnDraggableDragStartForMouse);
-    draggableElement.addEventListener('touchstart',handleOnDraggableDragStartForTouch);
+    draggableElement.addEventListener('mousedown',handleOnDraggableDragStart);
+    draggableElement.addEventListener('touchstart',handleOnDraggableDragStart);
 }
 
 function addDraggingEventToDraggedElement(){
@@ -291,50 +276,30 @@ function dragEndInitializer(){
     replacePlaceholderWithDraggable(dragging);
     currentlyDraggingElement = false;
 }
-function handleOnDraggableDragEndForMouse(event){
-    if(currentlyDraggingElement){
-        dragEndInitializer();
-    }
-}
-
-function handleOnDraggableDragEndForTouch(event){
-    // event.preventDefault();
+function handleOnDraggableDragEnd(event){
     if(currentlyDraggingElement){
         dragEndInitializer();
     }
 }
 
 //dragging
-function handleOnDraggingForTouch(event){
+function handleOnDragging(event){
     if(currentlyDraggingElement){
-        handleCurrentlyDraggingElementWithTouch(event);
+        handleCurrentlyDraggingElement(event);
     }
 }
 
-function handleOnDraggingForMouse(event){
-    if(currentlyDraggingElement){
-        handleCurrentlyDraggingElementWithMouse(event);
-    }
-}
-
-function handleCurrentlyDraggingElementWithMouse(e){
-    let element = getElementBeingDragged();
-    let mouseDistance = getEventDistanceFromDraggingTopLeft();
-    let left = e.clientX - mouseDistance.x;
-    let top = e.clientY - mouseDistance.y;
-    element.style.top = top + 'px';
-    element.style.left = left + 'px';
-}
-
-function handleCurrentlyDraggingElementWithTouch(e){
+function handleCurrentlyDraggingElement(event, index=0){
     // e.preventDefault();
     let element = getElementBeingDragged();
     let touchDistance = getEventDistanceFromDraggingTopLeft();
-    let left = e.touches[0].clientX - touchDistance.x;
-    let top = e.touches[0].clientY - touchDistance.y;
+    let left = isTouchEvent(event) ? (event.touches[index].clientX - touchDistance.x) : isMouseEvent(event) ? (event.clientX - touchDistance.x) : -1;
+    let top = isTouchEvent(event) ? (event.touches[index].clientY - touchDistance.y) : isMouseEvent(event) ? (event.clientY - touchDistance.y) : -1;
     element.style.top = top + 'px';
     element.style.left = left + 'px';
 }
+
+
 /**
  * ./DRAGGABLE EVENTS
  */
@@ -358,10 +323,10 @@ function handleCurrentlyDraggingElementWithTouch(e){
   */
 
 
-document.body.addEventListener('mousemove', handleOnDraggingForMouse, false);
-document.body.addEventListener('touchmove', handleOnDraggingForTouch, false);
-document.body.addEventListener('touchend', handleOnDraggableDragEndForTouch, false);
-document.body.addEventListener('mouseup',handleOnDraggableDragEndForMouse, false);
+document.body.addEventListener('mousemove', handleOnDragging, false);
+document.body.addEventListener('touchmove', handleOnDragging, false);
+document.body.addEventListener('touchend', handleOnDraggableDragEnd, false);
+document.body.addEventListener('mouseup',handleOnDraggableDragEnd, false);
 
 
 
