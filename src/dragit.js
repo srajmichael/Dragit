@@ -361,22 +361,22 @@ class Dragit{
     handleOnDraggingEvent(event){
         const housing = this.getHoveredOverHousing(event);
         if(housing){
-            this.manageDraggablePlaceholderPlacementInHousing(housing);
+            this.manageDraggablePlaceholderPlacementInHousing(housing, event);
         }
     }
 
 
 
-    manageDraggablePlaceholderPlacementInHousing(housing){
+    manageDraggablePlaceholderPlacementInHousing(housing, event){
         const children = housing.children;
-        const point = this.getCenterPointOfDraggedElement();
+        // const point = this.getCenterPointOfDraggedElement();
+        const point = Dragit.getSinglePointXYFromEvent(event);
         const placeholder = this.getDraggingPlaceholderElement(); 
 
         if(children.length == 0){
             housing.appendChild(placeholder);
         }else{
             let hasBeenPlaced = false;
-            let spotIsPlaceholder = false;
             let wouldReplacePlaceholder = false;
             let isOverDraggable = false;
             let isOverPlaceholder = false;
@@ -385,7 +385,6 @@ class Dragit{
                 //if point is not in element, ignore it
                 if(Dragit.pointIsInsideElement(point, children[i])){
                     const center = Dragit.getCenterPointOfElement(children[i]);
-
                     if(this.elementIsInDraggables(children[i])){
                         isOverDraggable = true;
                         if(center.y > point.y){
