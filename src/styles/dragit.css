@@ -1,25 +1,56 @@
 *{ box-sizing: border-box;}
 
 .test-environment{
-    max-width: 900px;
     width: 100%;
     margin: 0rem auto;
+    padding: 5vh 5vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
 }
 
+.left-side, .right-side{
+    width: 45%;
+    max-width: 45%;
+}
 
-.draggable-housing{
+.bottom{
+    width: 100%;
+    margin-top: 2rem;
+}
+
+.draggable-housing, .draggable-housing-right{
     padding: 3rem;
     background: #ccc;
 }
 
-.draggable{
+.draggable, .draggable-right{
     padding: 1rem;
     min-height: 50px;
     border: 1px solid #aaa;
 }
-#dragging-placeholder{
+.deep-drag{
+    padding: .25rem;
+    min-height: 35px;
+    background: rgba(35, 123,87, .6);
+}
+.deepest-drag{
+    padding: .25rem;
+    min-height: 35px;
+    background: rgba(189, 89, 192, 0.6);
+}
+.deepest-housing{
+    padding: .25rem;
+}
+#dragging-placeholder-deep, #dragging-placeholder-deepest{
+    width: 100%;
+    min-height: 35px;
+    border: 2px dashed black;
+}
+
+#dragging-placeholder, #dragging-placeholder-right{
     width: 100%;
     min-height: 50px;
     border: 2px dashed black;
-    
 }

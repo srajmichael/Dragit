@@ -7,38 +7,67 @@
 </head>
 <body>
 
-    
-    <div class='test-environment'>
+<div class='test-environment'>
+
+    <div class='left-side'>
         <div class='draggable-housing'>
-            <div id='test' class='draggable'>1</div>
-            <div class='draggable'>
-                <div>
-                    <h3>text here</h3>
-                    <a href='https://google.com'>Google</a>
-                </div>
-            </div>
-            <div class='draggable'>3</div>
-            <div class='draggable'>4</div>
-            <div class='draggable'>5</div>
-            <div class='draggable'>6</div>
+            <div class='draggable'>D1</div>
+            <div class='draggable'>D2</div>
         </div>
-        <div id='house' class='draggable-housing'>
-            <div class='draggable'>7</div>
-            <div class='draggable'>8</div>
-            <div class='draggable'>9</div>
-            <div class='draggable'>10</div>
-            <div class='draggable'>11</div>
-            <div class='draggable'>12</div>
-            <div class='draggable'>13</div>
-            <div class='draggable'>14</div>
-            <div class='draggable'>15</div>
-            <div class='draggable'>16</div>
-            <div class='draggable'>17</div>
-            <div class='draggable'>18</div>
-            <div class='draggable'>19</div>
-            <div class='draggable'>20</div>
+        <div class='draggable-housing'>
+            <div class='draggable'>D3</div>
+            <div class='draggable'>D4</div>
         </div>
     </div>
+
+    <div class='right-side'>
+        <div class='draggable-housing-right'>
+            <div class='draggable-right'>
+                D Right 1
+                <h3>text here</h3>
+                <a href='https://google.com'>Google</a>
+            </div>
+            <div class='draggable-right'>D Right 2</div>
+        </div>
+        <div class='draggable-housing-right'>
+            <div class='draggable-right'>
+                <div class='deep-drag deepest-housing'>
+                    <div class='deepest-drag'>Deepest 1</div>
+                    <div class='deepest-drag'>Deepest 2</div>
+                    <div class='deepest-drag'>Deepest 3</div>
+                </div>
+               </div>
+            <div class='draggable-right'>D Right 4</div>
+        </div>
+    </div>
+
+
+    <div class='bottom'>
+        <div class='draggable-housing'>
+            <div class='draggable'>D1 - Bottom</div>
+            <div class='draggable'>D2 - Bottom</div>
+            <div class='draggable deep-house'>
+                <div class='deep-drag deepest-housing'>
+                    <p>Deep Drag 1</p>
+                    <div class='deepest-drag'>Deepest 1</div>
+                    <div class='deepest-drag'>Deepest 2</div>
+                    <div class='deepest-drag'>Deepest 3</div>
+                </div>
+                <div class='deep-drag'>Deep Drag 2</div>
+                <div class='deep-drag deepest-housing'>
+                    <p>Deep Drag 3</p>
+                    <div class='deepest-drag'>Deepest 4</div>
+                    <div class='deepest-drag'>Deepest 5</div>
+                    <div class='deepest-drag'>Deepest 6</div>
+                </div>
+                <div class='deep-drag'>Deep Drag 4</div>
+            </div>
+            <div class='draggable'>D4 - Bottom</div>
+        </div>
+    </div>
+
+</div>
+
 
     <script src='bundle.js'></script>
 </body>
