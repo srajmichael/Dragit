@@ -20,6 +20,7 @@ class Dragit{
         this.state.draggingPlaceholderElement = Dragit.createElementWithId('DIV', this.state.placeholderId);
         this.state.eventDistanceFromDraggingTopLeft = {x: 0, y: 0};
         this.state.draggingClass = 'dragging';
+        this.state.placeholderTolerance = {x: -5, y: -5};;
         
         //dragit related utilities
         this.elementIsInDraggables = this.elementIsInDraggables.bind(this);
@@ -38,6 +39,7 @@ class Dragit{
         //dragit getters and setters
         this.getElementBeingDragged = this.getElementBeingDragged.bind(this);
         this.setElementBeingDragged = this.setElementBeingDragged.bind(this);
+        this.getPlaceholderTolerance = this.getPlaceholderTolerance.bind(this);
         this.isCurrentlyDraggingElement = this.isCurrentlyDraggingElement.bind(this);
         this.setIsCurrentlyDraggingElement = this.setIsCurrentlyDraggingElement.bind(this);
         this.getDraggableHousings = this.getDraggableHousings.bind(this);
@@ -170,6 +172,27 @@ class Dragit{
     
         return (left <= point.x) && (point.x <= right) && (top <= point.y) && (point.y <= bottom);
     }
+    /**
+     * 
+     * @param {Object} point - point.x - horizontal point
+     *                         point.y - vertical point
+     * 
+     * @param {Element} element 
+     * @param {Object} xyTolerance - xyTolerance.x - horizontal tolerance distance
+     *                               xyTolerance.y - vertical tolerance distance
+     * @returns {Boolean} True if point is within element
+     */
+    static pointIsInsideElementWithTolerance(point, element, xyTolerance){
+        const tx = xyTolerance.x;
+        const ty = xyTolerance.y;
+        let rect = element.getBoundingClientRect();
+        let left = rect.left - tx;
+        let right = rect.left + rect.width + tx;
+        let top = rect.top - ty;
+        let bottom = rect.top + rect.height + ty;
+    
+        return (left <= point.x) && (point.x <= right) && (top <= point.y) && (point.y <= bottom);
+    }
 
     static nodeListToArray(nodeList){
         return Array.prototype.slice.call(nodeList)
@@ -257,6 +280,11 @@ class Dragit{
         const placeholder = this.getDraggingPlaceholderElement();
         placeholder.parentNode.replaceChild(draggableElement, placeholder);
     }
+
+    pointIsInsideElementWithPlaceholderTolerance(point, element){
+        const y = point.y;
+
+    }
     /************* ./Dragit RELATED UTILITIES *********/
 
 
@@ -267,6 +295,9 @@ class Dragit{
     }
     setElementBeingDragged(element){
         this.state.elementBeingDragged = element;
+    }
+    getPlaceholderTolerance(){
+        return this.state.placeholderTolerance;
     }
     isCurrentlyDraggingElement(){
         return this.state.currentlyDraggingElement;
@@ -369,60 +400,43 @@ class Dragit{
 
     manageDraggablePlaceholderPlacementInHousing(housing, event){
         const children = housing.children;
-        // const point = this.getCenterPointOfDraggedElement();
         const point = Dragit.getSinglePointXYFromEvent(event);
         const placeholder = this.getDraggingPlaceholderElement(); 
+        const tolerance = this.getPlaceholderTolerance();
+        
 
         if(children.length == 0){
             housing.appendChild(placeholder);
         }else{
-            let hasBeenPlaced = false;
-            let wouldReplacePlaceholder = false;
-            let isOverDraggable = false;
-            let isOverPlaceholder = false;
+            let housingHasPlaceholder = false;
+            let housingHasDraggable = false;
 
             for(let i = 0; i < children.length; i++){
-                //if point is not in element, ignore it
-                if(Dragit.pointIsInsideElement(point, children[i])){
-                    const center = Dragit.getCenterPointOfElement(children[i]);
-                    if(this.elementIsInDraggables(children[i])){
-                        isOverDraggable = true;
-                        if(center.y > point.y){
-                            //check if there's an element before current child
-                            if(i !== 0){
-                                if(children[i-1] !== placeholder){
-                                    this.insertPlaceholderBefore(children[i]);
-                                    hasBeenPlaced = true;
-                                }else{
-                                    wouldReplacePlaceholder = true;
-                                }
+                if(this.elementIsInDraggables(children[i])){
+                    housingHasDraggable = true;
+                }else if(children[i] == placeholder){
+                    housingHasPlaceholder = true;
+                }
+                //if event is within the element and within tolerance, swap with placeholder
+                if(Dragit.pointIsInsideElementWithTolerance(point, children[i], tolerance)){
+                    //if the hovered over is not the placeholder
+                    if(children[i] !== placeholder){
+                        if(this.elementIsInDraggables(children[i])){
+                            const center = Dragit.getCenterPointOfElement(children[i]);
+                            //if event is above the element's center
+                            if(center.y > point.y){
+                                this.insertPlaceholderAfter(children[i]);
                             }else{
                                 this.insertPlaceholderBefore(children[i]);
-                                hasBeenPlaced = true;
-                            }
-                        }else{
-                            if(i !== children.length - 1){
-                                if(children[i+1] !== placeholder){
-                                    this.insertPlaceholderAfter(children[i]);
-                                    hasBeenPlaced = true;
-                                }else{
-                                    wouldReplacePlaceholder = true;
-                                }
-                            }else{
-                                this.insertPlaceholderAfter(children[i]);
-                                hasBeenPlaced = true;
                             }
                         }
+                    }else{
 
-                    }else if(children[i] === placeholder){
-                        isOverPlaceholder = true;
                     }
                 }
             }
 
-
-
-            if(!wouldReplacePlaceholder && !hasBeenPlaced && !(isOverDraggable || isOverPlaceholder)){
+            if(!housingHasPlaceholder && !housingHasDraggable){
                 housing.appendChild(placeholder);
             }
 
