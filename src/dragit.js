@@ -22,6 +22,7 @@ class Dragit{
         this.state.draggingClass = 'dragging';
         
         //dragit related utilities
+        this.elementIsInDraggables = this.elementIsInDraggables.bind(this);
         this.getCenterPointOfDraggedElement = this.getCenterPointOfDraggedElement.bind(this);
         this.getHoveredOverHousing = this.getHoveredOverHousing.bind(this);
         this.insertPlaceholderAfter = this.insertPlaceholderAfter.bind(this);
@@ -181,6 +182,10 @@ class Dragit{
 
 
     /************* Dragit RELATED UTILITIES *********/
+    elementIsInDraggables(element){
+        return this.getDraggables().includes(element);
+    }
+
     getCenterPointOfDraggedElement(){
         const dragging = this.getElementBeingDragged();
         return Dragit.getCenterPointOfElement(dragging);
@@ -315,7 +320,7 @@ class Dragit{
     }
 
 
-    /************* ./Dragit EVENT INITIALIZERS *********/
+    /************* ./Dragit SETUPS AND BREAKDOWNS *********/
 
 
     /************* Dragit EVENT HANDLERS *********/
@@ -366,31 +371,62 @@ class Dragit{
         const children = housing.children;
         const point = this.getCenterPointOfDraggedElement();
         const placeholder = this.getDraggingPlaceholderElement(); 
+
         if(children.length == 0){
             housing.appendChild(placeholder);
-        }
-        for(let i = 0; i < children.length; i++){
-            if(Dragit.pointIsInsideElement(point, children[i])){
-                let center = Dragit.getCenterPointOfElement(children[i]);
-                if(center.y > point.y){
-                    if(i !== 0){
-                        if(children[i-1] !== placeholder){
-                            this.insertPlaceholderBefore(children[i]);
+        }else{
+            let hasBeenPlaced = false;
+            let spotIsPlaceholder = false;
+            let wouldReplacePlaceholder = false;
+            let isOverDraggable = false;
+            let isOverPlaceholder = false;
+
+            for(let i = 0; i < children.length; i++){
+                //if point is not in element, ignore it
+                if(Dragit.pointIsInsideElement(point, children[i])){
+                    const center = Dragit.getCenterPointOfElement(children[i]);
+
+                    if(this.elementIsInDraggables(children[i])){
+                        isOverDraggable = true;
+                        if(center.y > point.y){
+                            //check if there's an element before current child
+                            if(i !== 0){
+                                if(children[i-1] !== placeholder){
+                                    this.insertPlaceholderBefore(children[i]);
+                                    hasBeenPlaced = true;
+                                }else{
+                                    wouldReplacePlaceholder = true;
+                                }
+                            }else{
+                                this.insertPlaceholderBefore(children[i]);
+                                hasBeenPlaced = true;
+                            }
+                        }else{
+                            if(i !== children.length - 1){
+                                if(children[i+1] !== placeholder){
+                                    this.insertPlaceholderAfter(children[i]);
+                                    hasBeenPlaced = true;
+                                }else{
+                                    wouldReplacePlaceholder = true;
+                                }
+                            }else{
+                                this.insertPlaceholderAfter(children[i]);
+                                hasBeenPlaced = true;
+                            }
                         }
-                    }else{
-                        this.insertPlaceholderBefore(children[i]);
+
+                    }else if(children[i] === placeholder){
+                        isOverPlaceholder = true;
                     }
-                }else{
-                    if(i !== children.length - 1){
-                        if(children[i+1] !== placeholder){
-                            this.insertPlaceholderAfter(children[i]);
-                        }
-                    }else{
-                        this.insertPlaceholderAfter(children[i]);
-                    }
-                    
                 }
             }
+
+
+
+            if(!wouldReplacePlaceholder && !hasBeenPlaced && !(isOverDraggable || isOverPlaceholder)){
+                housing.appendChild(placeholder);
+            }
+
         }
     }
 
